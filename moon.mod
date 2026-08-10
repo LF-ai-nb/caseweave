@@ -13,14 +13,14 @@ name = "participant/caseweave"
 
 version = "0.1.0"
 
-readme = "README.mbt.md"
+readme = "README.md"
 
-repository = ""
+repository = "https://github.com/participant/caseweave"
 
-license = "Apache-2.0"
+license = "MIT"
 
-keywords = []
+keywords = [ "testing", "pairwise", "covering-array", "constraints", "ci" ]
 
 preferred_target = "wasm"
 
-description = ""
+description = "Deterministic constrained combinatorial test matrix generator for MoonBit."
