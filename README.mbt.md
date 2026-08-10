@@ -1,1 +1,3 @@
-# participant/caseweave
+# CaseWeave
+
+MoonBit package documentation lives in `README.md`.
