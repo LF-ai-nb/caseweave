@@ -1,5 +1,5 @@
-// import {
-//   "participant/caseweave" @lib,
-// }
+import {
+  "participant/caseweave",
+}
 
 pkgtype(kind: "executable")

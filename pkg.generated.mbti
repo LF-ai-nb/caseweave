@@ -1,0 +1,143 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "participant/caseweave"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn audit(Model, Array[TestCase], strength? : Int, constraints? : Array[Constraint], max_candidates? : Int) -> Result[CoverageReport, CaseWeaveError]
+
+pub fn cases_to_csv(Model, Array[TestCase]) -> String
+
+pub fn cases_to_markdown(Model, Array[TestCase]) -> String
+
+pub fn generate(Model, constraints? : Array[Constraint], options? : GenerationOptions) -> Result[Suite, CaseWeaveError]
+
+pub let version : String
+
+// Errors
+
+// Types and methods
+pub(all) enum CaseWeaveError {
+  EmptyModel
+  EmptyParameterName(Int)
+  DuplicateParameter(String)
+  EmptyValues(String)
+  EmptyValue(String, Int)
+  DuplicateValue(String, String)
+  InvalidStrength(Int, Int)
+  InvalidCandidateLimit(Int)
+  CandidateLimitExceeded(Int)
+  NoValidCases
+  UncoverableInteraction
+  ParseError(Int, String)
+  UnknownParameter(String)
+  UnknownValue(String, String)
+  InvalidCaseWidth(Int, Int)
+  InvalidCaseValue(String, String)
+  ConstraintViolation(Int, String)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Constraint {
+  label : String
+  expression : ConstraintExpr
+} derive(Eq, @debug.Debug)
+pub fn Constraint::matches(Self, Model, TestCase) -> Result[Bool, CaseWeaveError]
+pub fn Constraint::new(String, ConstraintExpr) -> Self
+pub fn Constraint::parse(String, String) -> Result[Self, CaseWeaveError]
+pub fn Constraint::validate(Self, Model) -> Result[Unit, CaseWeaveError]
+
+pub(all) enum ConstraintExpr {
+  Equal(String, String)
+  NotEqual(String, String)
+  OneOf(String, Array[String])
+  NoneOf(String, Array[String])
+  And(ConstraintExpr, ConstraintExpr)
+  Or(ConstraintExpr, ConstraintExpr)
+  Implies(ConstraintExpr, ConstraintExpr)
+  Not(ConstraintExpr)
+  Always
+  Never
+} derive(Eq, @debug.Debug)
+
+pub(all) struct CoverageReport {
+  strength : Int
+  case_count : Int
+  total_interactions : Int
+  covered_interactions : Int
+  coverage_percent : Double
+  missing : Array[MissingInteraction]
+} derive(@debug.Debug)
+pub fn CoverageReport::is_complete(Self) -> Bool
+pub fn CoverageReport::missing_text(Self) -> String
+pub fn CoverageReport::summary(Self) -> String
+
+pub(all) struct GenerationOptions {
+  strength : Int
+  max_candidates : Int
+  minimize : Bool
+} derive(Eq, @debug.Debug)
+pub fn GenerationOptions::default() -> Self
+pub fn GenerationOptions::pairwise(max_candidates? : Int) -> Self
+
+pub(all) struct GenerationStats {
+  cartesian_size : Int64
+  examined_candidates : Int
+  feasible_candidates : Int
+  required_interactions : Int
+  selected_cases : Int
+  removed_redundant_cases : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct MissingInteraction {
+  choices : Array[NamedChoice]
+} derive(Eq, @debug.Debug)
+
+pub struct Model {
+  parameters : Array[Parameter]
+}
+pub fn Model::combination_count(Self) -> Int64
+pub fn Model::new(Array[Parameter]) -> Result[Self, CaseWeaveError]
+pub fn Model::parameter(Self, Int) -> Parameter?
+pub fn Model::parameter_count(Self) -> Int
+pub fn Model::parameter_index(Self, String) -> Int?
+pub fn Model::parameters(Self) -> Array[Parameter]
+pub fn Model::validate_case(Self, TestCase) -> Result[Unit, CaseWeaveError]
+pub fn Model::value_index(Self, Int, String) -> Int?
+
+pub(all) struct NamedChoice {
+  parameter : String
+  value : String
+} derive(Eq, @debug.Debug)
+
+pub(all) struct Parameter {
+  name : String
+  values : Array[String]
+} derive(Eq, @debug.Debug)
+pub fn Parameter::new(String, Array[String]) -> Self
+
+pub struct Suite {
+  cases : Array[TestCase]
+  strength : Int
+  stats : GenerationStats
+}
+pub fn Suite::cases(Self) -> Array[TestCase]
+pub fn Suite::length(Self) -> Int
+pub fn Suite::stats(Self) -> GenerationStats
+pub fn Suite::strength(Self) -> Int
+pub fn Suite::summary(Self) -> String
+pub fn Suite::to_csv(Self, Model) -> String
+pub fn Suite::to_json(Self, Model) -> String
+pub fn Suite::to_markdown(Self, Model) -> String
+
+pub(all) struct TestCase {
+  values : Array[String]
+} derive(Eq, @debug.Debug)
+pub fn TestCase::get(Self, Int) -> String?
+pub fn TestCase::new(Array[String]) -> Self
+pub fn TestCase::value_for(Self, Model, String) -> String?
+
+// Type aliases
+
+// Traits
