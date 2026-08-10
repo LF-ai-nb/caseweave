@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  moonbit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+      - name: Show toolchain
+        run: moon version --all
+
+      - name: Update dependencies
+        run: moon update
+
+      - name: Check
+        run: moon check --deny-warn
+
+      - name: Build
+        run: moon build
+
+      - name: Test
+        run: moon test
+
+      - name: Run example
+        run: moon run cmd/main
+
+      - name: Package dry run
+        if: ${{ vars.MOONCAKES_DRY_RUN == 'true' }}
+        run: moon publish --dry-run
