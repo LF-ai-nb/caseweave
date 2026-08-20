@@ -14,5 +14,7 @@ Initial hackathon release.
 - Added scenario-spec parsing for model, constraints, included cases, excluded patterns and risk hints.
 - Added risk-ranked scenario runs and Markdown risk reports.
 - Added CI-oriented scenario quality gates and gate reports.
+- Added coverage-repair planning for incomplete external suites.
+- Added risk-aware repair planning and repair gate reports.
 - Added runnable deployment-matrix example.
 - Added unit tests, CI workflow and Mooncakes-ready metadata.

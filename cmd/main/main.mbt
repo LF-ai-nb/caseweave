@@ -26,14 +26,28 @@ fn main {
     Err(_) => panic()
   }
   let gate = run.evaluate_gate(spec, gate=@caseweave.ScenarioGate::strict())
+  let repair = match
+    spec.plan_repair([
+      @caseweave.TestCase::new(["linux", "chrome", "oidc", "cn"]),
+    ]) {
+    Ok(value) => value
+    Err(_) => panic()
+  }
+  let repair_gate = repair.evaluate_repair_gate(
+    gate=@caseweave.RepairGate::budget(20),
+  )
   println("CaseWeave scenario-driven deployment matrix")
   println(spec.summary())
   println(run.suite.summary())
   println(run.coverage.summary())
   println(gate.summary())
+  println(repair.summary())
+  println(repair_gate.summary())
   println("")
   println("Top risk-ranked cases")
   println(run.risk_markdown(top=5))
+  println("Coverage repair steps")
+  println(repair.steps_markdown(top=5))
   println("Generated matrix")
   println(run.cases_markdown())
 }

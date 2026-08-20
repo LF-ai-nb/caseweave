@@ -19,6 +19,7 @@ CaseWeave 是一个用 MoonBit 编写的确定性组合测试矩阵生成器。�
 - 支持文本场景规格：参数、约束、必须包含/排除的业务样例、风险权重都可以写在同一份 spec 中。
 - 支持按业务风险对生成用例排序，方便先跑高风险路径或把风险解释写进测试计划。
 - 支持 CI 质量门禁：覆盖完整性、缺失交互数、用例预算、风险样例数量和规格 lint 可形成通过/失败报告。
+- 支持覆盖缺口修复：对已有测试套件生成补测建议，把缺失交互逐步补齐，并提供补测门禁。
 - 提供可运行示例、单元测试、CI 配置和 Mooncakes 发布元数据。
 
 ## 快速开始
@@ -38,13 +39,15 @@ scenario=Deployment risk matrix, parameters=4, strength=2, constraints=2, includ
 strength=2, cases=11, interactions=43, candidates=42/54, removed=0
 strength=2, cases=12, coverage=100%, covered=43/43, missing=0
 gate=pass, failures=0, warnings=0, cases=12, coverage=100%, top-risk=13, risk-cases=3
+repair=complete, original=1, additions=10, initial-missing=37, final-missing=0, coverage=100%
+repair-gate=pass, failures=0, additions=10, initial-missing=37, final-missing=0, largest-gain=6
 ```
 
 ## API 示例
 
 ```moonbit
 import {
-  "MX-ai-nb/caseweave" @caseweave,
+  "ZBZ-ai-nb/caseweave" @caseweave,
 }
 
 fn main {
@@ -98,6 +101,29 @@ println(gate.summary())
 
 这层能力让 CaseWeave 不只是“生成组合”，而是能把业务约束、必须跑的样例、风险解释和 CI 门禁串成一条可追踪的测试计划。
 
+## 覆盖缺口修复
+
+如果已有测试套件不完整，可以让 CaseWeave 给出追加用例：
+
+```moonbit
+let seed = [@caseweave.TestCase::new(["linux", "chrome", "oidc"])]
+let repair = @caseweave.plan_repair(model, seed).unwrap()
+println(repair.summary())
+println(repair.steps_markdown(top=5))
+```
+
+如果使用场景规格，修复计划会同时参考风险提示：
+
+```moonbit
+let repair = spec.plan_repair(seed).unwrap()
+let gate = repair.evaluate_repair_gate(
+  gate=@caseweave.RepairGate::budget(20),
+)
+println(gate.summary())
+```
+
+这让项目从“生成第一版矩阵”延展到“审计遗留测试并生成补测计划”，更适合接入真实 CI。
+
 ## 独特性说明
 
 我按 Mooncakes/GitHub 上常见测试类方向做过对比：CaseWeave 不做随机性质测试、不做代码覆盖率报告、不做 TAP 报告、不做提交材料自查，也不是通用规则/novelty 分析工具。它的边界是“确定性、带约束、可审计、可导出的组合测试矩阵”，新增的场景规格与风险门禁进一步把它定位为发布前测试计划生成器。
@@ -115,12 +141,13 @@ CaseWeave 负责生成和审计测试矩阵，不负责执行测试、调用浏�
 - `export.mbt`：CSV、JSON、Markdown 导出
 - `spec.mbt`：场景规格解析、必须/排除样例、风险排序和 lint
 - `gate.mbt`：CI 场景质量门禁和 Markdown 报告
+- `repair.mbt`：覆盖缺口修复计划、风险感知补测建议和补测门禁
 - `cmd/main`：可运行示例
 - `docs/`：API、设计、验收和验证记录
 
 ## Mooncakes 发布
 
-发布前请确认 `moon.mod` 里的包名和仓库地址对应你的 Mooncakes / GitHub 账号。当前配置为 `MX-ai-nb/caseweave` 和 `https://github.com/MX-ai-nb/caseweave`；正式提交前需要创建并推送到这个公开仓库，或改成你实际使用的公开仓库地址。
+发布前请确认 `moon.mod` 里的包名和仓库地址对应你的 Mooncakes / GitHub 账号。当前配置为 `ZBZ-ai-nb/caseweave` 和 `https://github.com/ZBZ-ai-nb/caseweave`；正式提交前需要创建并推送到这个公开仓库，或改成你实际使用的公开仓库地址。
 
 ```bash
 moon check

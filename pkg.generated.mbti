@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "MX-ai-nb/caseweave"
+package "ZBZ-ai-nb/caseweave"
 
 import {
   "moonbitlang/core/debug",
@@ -15,6 +15,8 @@ pub fn cases_to_markdown(Model, Array[TestCase]) -> String
 pub fn generate(Model, constraints? : Array[Constraint], options? : GenerationOptions) -> Result[Suite, CaseWeaveError]
 
 pub fn parse_scenario_spec(String) -> Result[ScenarioSpec, CaseWeaveError]
+
+pub fn plan_repair(Model, Array[TestCase], constraints? : Array[Constraint], options? : RepairOptions) -> Result[RepairPlan, CaseWeaveError]
 
 pub let version : String
 
@@ -44,6 +46,7 @@ pub(all) enum CaseWeaveError {
   DuplicateValue(String, String)
   InvalidStrength(Int, Int)
   InvalidCandidateLimit(Int)
+  InvalidSuggestionLimit(Int)
   CandidateLimitExceeded(Int)
   NoValidCases
   UncoverableInteraction
@@ -177,6 +180,91 @@ pub(all) struct RankedCase {
   reasons : Array[String]
 } derive(Eq, @debug.Debug)
 
+pub(all) struct RepairGate {
+  require_complete : Bool
+  max_additions : Int
+  max_final_missing : Int
+  min_largest_gain : Int
+}
+pub fn RepairGate::best_effort(Int, Int) -> Self
+pub fn RepairGate::budget(Int) -> Self
+pub fn RepairGate::default() -> Self
+pub fn RepairGate::normalize(Self) -> Self
+
+pub(all) struct RepairGateFailure {
+  kind : RepairGateFailureKind
+  message : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum RepairGateFailureKind {
+  RepairIncomplete(Int)
+  TooManyRepairAdditions(Int, Int)
+  TooManyRemainingInteractions(Int, Int)
+  LargestGainTooLow(Int, Int)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct RepairGateReport {
+  passed : Bool
+  failures : Array[RepairGateFailure]
+  additions : Int
+  initial_missing : Int
+  final_missing : Int
+  largest_gain : Int
+  complete : Bool
+}
+pub fn RepairGateReport::failure_text(Self) -> String
+pub fn RepairGateReport::is_passed(Self) -> Bool
+pub fn RepairGateReport::summary(Self) -> String
+pub fn RepairGateReport::to_markdown(Self) -> String
+
+pub(all) struct RepairOptions {
+  strength : Int
+  max_candidates : Int
+  max_suggestions : Int
+}
+pub fn RepairOptions::default() -> Self
+pub fn RepairOptions::from_generation(GenerationOptions, max_suggestions? : Int) -> Self
+pub fn RepairOptions::normalize(Self) -> Self
+pub fn RepairOptions::pairwise(max_candidates? : Int, max_suggestions? : Int) -> Self
+
+pub(all) struct RepairPlan {
+  model : Model
+  original_cases : Array[TestCase]
+  additions : Array[TestCase]
+  merged_cases : Array[TestCase]
+  original_report : CoverageReport
+  final_report : CoverageReport
+  steps : Array[RepairStep]
+  complete : Bool
+  initial_missing : Int
+  final_missing : Int
+}
+pub fn RepairPlan::addition_count(Self) -> Int
+pub fn RepairPlan::additions(Self) -> Array[TestCase]
+pub fn RepairPlan::additions_markdown(Self) -> String
+pub fn RepairPlan::evaluate_repair_gate(Self, gate? : RepairGate) -> RepairGateReport
+pub fn RepairPlan::highest_risk_step(Self) -> RepairStep?
+pub fn RepairPlan::is_complete(Self) -> Bool
+pub fn RepairPlan::largest_gain_step(Self) -> RepairStep?
+pub fn RepairPlan::largest_repair_gain(Self) -> Int
+pub fn RepairPlan::merged_cases(Self) -> Array[TestCase]
+pub fn RepairPlan::merged_markdown(Self) -> String
+pub fn RepairPlan::missing_after_text(Self) -> String
+pub fn RepairPlan::risk_summary(Self) -> String
+pub fn RepairPlan::steps(Self) -> Array[RepairStep]
+pub fn RepairPlan::steps_markdown(Self, top? : Int) -> String
+pub fn RepairPlan::summary(Self) -> String
+pub fn RepairPlan::to_markdown(Self) -> String
+
+pub(all) struct RepairStep {
+  index : Int
+  test_case : TestCase
+  newly_covered : Array[MissingInteraction]
+  remaining_missing : Int
+  risk_score : Int
+  reasons : Array[String]
+} derive(Eq, @debug.Debug)
+
 pub(all) struct ScenarioGate {
   require_complete_coverage : Bool
   max_missing_interactions : Int
@@ -225,6 +313,7 @@ pub fn ScenarioSpec::generate_suite(Self) -> Result[Suite, CaseWeaveError]
 pub fn ScenarioSpec::lint(Self) -> Array[SpecWarning]
 pub fn ScenarioSpec::lint_text(Self) -> String
 pub fn ScenarioSpec::parse(String) -> Result[Self, CaseWeaveError]
+pub fn ScenarioSpec::plan_repair(Self, Array[TestCase], options? : RepairOptions) -> Result[RepairPlan, CaseWeaveError]
 pub fn ScenarioSpec::rank_cases(Self, Array[TestCase]) -> Result[Array[RankedCase], CaseWeaveError]
 pub fn ScenarioSpec::run(Self) -> Result[ScenarioRun, CaseWeaveError]
 pub fn ScenarioSpec::score_case(Self, TestCase) -> Result[CaseRisk, CaseWeaveError]

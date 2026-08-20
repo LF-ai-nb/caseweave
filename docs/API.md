@@ -144,3 +144,66 @@ println(report.to_markdown())
 - `ScenarioGate::coverage_only()`：只关注覆盖完整性。
 - `ScenarioGate::with_case_budget(min, max)`：检查用例数量预算。
 - `ScenarioGate::with_risk_floor(top, count)`：检查风险分数和命中风险提示的用例数。
+
+## 覆盖缺口修复
+
+`plan_repair(model, cases, constraints?, options?)` 用于审计已有套件并生成补测建议。它和 `audit` 使用同一套交互集合，因此“缺什么”和“补什么”是一致的。
+
+```moonbit
+let seed = [
+  @caseweave.TestCase::new(["linux", "chrome", "password"]),
+]
+let plan = @caseweave.plan_repair(model, seed).unwrap()
+println(plan.summary())
+println(plan.steps_markdown(top=5))
+```
+
+`RepairOptions` 控制覆盖强度、候选枚举上限和最多建议多少条补测用例：
+
+```moonbit
+let plan = @caseweave.plan_repair(
+  model,
+  seed,
+  options=@caseweave.RepairOptions::{
+    strength: 2,
+    max_candidates: 100000,
+    max_suggestions: 20,
+  },
+)
+```
+
+如果 `max_suggestions` 太小，返回的 `RepairPlan` 可能是 partial：它仍然会给出已经找到的补测步骤，并在 `final_missing` 中保留剩余缺口。
+
+常用输出：
+
+- `plan.summary()`：一行摘要。
+- `plan.steps_markdown(top?)`：每一步新增用例、覆盖了多少缺口、还剩多少缺口。
+- `plan.additions_markdown()`：只输出建议追加的用例矩阵。
+- `plan.merged_markdown()`：输出已有用例与补测建议合并后的矩阵。
+- `plan.risk_summary()`：最高风险补测步骤和最大收益步骤。
+
+场景规格也可以直接生成风险感知修复计划：
+
+```moonbit
+let plan = spec.plan_repair(seed).unwrap()
+```
+
+当多个候选用例覆盖收益相同，场景修复会优先选择风险分数更高的用例。
+
+## 补测门禁
+
+`RepairGate` 用于判断补测计划是否适合进入 CI：
+
+```moonbit
+let report = plan.evaluate_repair_gate(
+  gate=@caseweave.RepairGate::budget(20),
+)
+assert_true(report.is_passed())
+println(report.to_markdown())
+```
+
+内置门禁：
+
+- `RepairGate::default()`：要求修复完整、最终缺口为 0。
+- `RepairGate::budget(max)`：要求修复完整，且追加用例不超过预算。
+- `RepairGate::best_effort(max, missing)`：允许 partial，用于先生成有限补测建议。

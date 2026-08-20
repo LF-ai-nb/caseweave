@@ -11,6 +11,7 @@ pub(all) enum CaseWeaveError {
   DuplicateValue(String, String)
   InvalidStrength(Int, Int)
   InvalidCandidateLimit(Int)
+  InvalidSuggestionLimit(Int)
   CandidateLimitExceeded(Int)
   NoValidCases
   UncoverableInteraction

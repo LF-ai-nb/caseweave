@@ -476,3 +476,132 @@ test "scenario parser reports malformed inputs" {
     is Err(ParseError(_, _)),
   )
 }
+
+///|
+test "repair planner completes incomplete external suites" {
+  let model = sample_model()
+  let seed = [@caseweave.TestCase::new(["linux", "chrome", "password"])]
+  let plan = match @caseweave.plan_repair(model, seed) {
+    Ok(value) => value
+    Err(_) => panic()
+  }
+  assert_true(plan.is_complete())
+  assert_true(plan.addition_count() > 0)
+  assert_eq(plan.final_missing, 0)
+  assert_true(plan.initial_missing > 0)
+  assert_true(plan.merged_cases().length() > seed.length())
+  assert_true(plan.summary().contains("repair=complete"))
+  assert_true(plan.additions_markdown().contains("| # | os | browser | auth |"))
+  assert_true(plan.steps_markdown(top=2).contains("covers"))
+  assert_true(plan.to_markdown().contains("CaseWeave Repair Plan"))
+  let gate = plan.evaluate_repair_gate()
+  assert_true(gate.is_passed())
+  assert_true(gate.summary().contains("repair-gate=pass"))
+  assert_true(gate.failure_text().contains("no repair gate failures"))
+}
+
+///|
+test "repair planner respects constraints while adding cases" {
+  let model = sample_model()
+  let safari_rule = match
+    @caseweave.Constraint::parse(
+      "safari only on macOS", "browser == safari => os == macos",
+    ) {
+    Ok(value) => value
+    Err(_) => panic()
+  }
+  let plan = match
+    @caseweave.plan_repair(
+      model,
+      [@caseweave.TestCase::new(["linux", "chrome", "password"])],
+      constraints=[safari_rule],
+    ) {
+    Ok(value) => value
+    Err(_) => panic()
+  }
+  assert_true(plan.is_complete())
+  for test_case in plan.additions() {
+    if test_case.value_for(model, "browser") == Some("safari") {
+      assert_eq(test_case.value_for(model, "os"), Some("macos"))
+    }
+  }
+}
+
+///|
+test "scenario repair planner uses risk hints for tie breaking and reports" {
+  let spec = deployment_scenario()
+  let seed = [@caseweave.TestCase::new(["linux", "chrome", "oidc", "cn"])]
+  let plan = match spec.plan_repair(seed) {
+    Ok(value) => value
+    Err(_) => panic()
+  }
+  assert_true(plan.is_complete())
+  guard plan.highest_risk_step() is Some(highest) else {
+    fail("repair should suggest at least one step")
+  }
+  assert_true(highest.risk_score >= 13)
+  assert_true(plan.risk_summary().contains("highest-risk"))
+  assert_true(plan.steps_markdown().contains("Safari path"))
+  guard plan.largest_gain_step() is Some(largest) else {
+    fail("repair should have a largest gain step")
+  }
+  assert_true(largest.newly_covered.length() >= 1)
+}
+
+///|
+test "repair gate reports incomplete plans and budget failures" {
+  let model = sample_model()
+  let seed = [@caseweave.TestCase::new(["linux", "chrome", "password"])]
+  let partial = match
+    @caseweave.plan_repair(model, seed, options=@caseweave.RepairOptions::{
+      strength: 2,
+      max_candidates: 100000,
+      max_suggestions: 0,
+    }) {
+    Ok(value) => value
+    Err(_) => panic()
+  }
+  assert_false(partial.is_complete())
+  let partial_gate = partial.evaluate_repair_gate()
+  assert_false(partial_gate.is_passed())
+  assert_true(partial_gate.failure_text().contains("incomplete"))
+  let complete = match @caseweave.plan_repair(model, seed) {
+    Ok(value) => value
+    Err(_) => panic()
+  }
+  let budget_gate = complete.evaluate_repair_gate(
+    gate=@caseweave.RepairGate::budget(0),
+  )
+  assert_false(budget_gate.is_passed())
+  assert_true(budget_gate.to_markdown().contains("Repair Gate"))
+  let best_effort = partial.evaluate_repair_gate(
+    gate=@caseweave.RepairGate::best_effort(0, partial.final_missing),
+  )
+  assert_true(best_effort.is_passed())
+}
+
+///|
+test "repair options validate suggestion limits and normalize values" {
+  assert_true(
+    @caseweave.plan_repair(sample_model(), [], options=@caseweave.RepairOptions::{
+      strength: 2,
+      max_candidates: 100000,
+      max_suggestions: -1,
+    })
+    is Err(InvalidSuggestionLimit(-1)),
+  )
+  let normalized = @caseweave.RepairOptions::{
+    strength: -10,
+    max_candidates: -20,
+    max_suggestions: -30,
+  }.normalize()
+  assert_eq(normalized.strength, 1)
+  assert_eq(normalized.max_candidates, 1)
+  assert_eq(normalized.max_suggestions, 0)
+  assert_eq(
+    @caseweave.RepairOptions::from_generation(
+      @caseweave.GenerationOptions::pairwise(),
+    ).strength,
+    2,
+  )
+}

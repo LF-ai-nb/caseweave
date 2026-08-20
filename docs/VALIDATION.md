@@ -41,12 +41,17 @@ moon publish --dry-run
 - 场景质量门禁：严格门禁、失败报告、Markdown 报告
 - 场景 lint：无约束、无风险、强度 1、单值参数等弱信号
 - 带引号 CSV 值和 malformed spec 错误报告
+- 覆盖缺口修复：从不完整外部套件生成补测建议
+- 约束下修复：补测建议不会违反约束
+- 风险感知修复：收益相同时优先高风险路径
+- 补测门禁：完整性、补测预算、best-effort partial 计划
+- 修复选项校验和 normalize 行为
 
 当前有效 MoonBit 代码规模：
 
 ```text
-非空、非注释 .mbt 行数：3229
-测试数：22，全部通过
+非空、非注释 .mbt 行数：4078
+测试数：27，全部通过
 ```
 
 发布前建议再次执行：
@@ -65,7 +70,7 @@ moon publish --dry-run
 ```text
 202 Accepted
 Dry run completed successfully. No changes were made.
-package MX-ai-nb/caseweave version 0.1.0
+package ZBZ-ai-nb/caseweave version 0.1.0
 ```
 
 注意：当前 CLI 在服务端 dry-run 成功后仍以非零退出码打印 `Error: moon publish failed`。以服务端 `202 Accepted` 细节判断，包内容和用户名匹配校验已经通过；正式发布前仍建议重新运行 `moon publish --dry-run` 并确认 moon 工具链版本行为。
