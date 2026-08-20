@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "ZBZ-ai-nb/caseweave"
+package "LF-ai-nb/caseweave"
 
 import {
   "moonbitlang/core/debug",

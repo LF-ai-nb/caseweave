@@ -1,13 +1,13 @@
 # 验证记录
 
-日期：2026-08-20
+日期：2026-08-21
 
 本地工具链：
 
 ```text
-moon 0.1.20260814
-moonc v0.10.8+8606a5800
-moonrun 0.1.20260814
+moon 0.1.20260819
+moonc v0.10.9+6e6c44045
+moonrun 0.1.20260819
 ```
 
 已执行：
@@ -70,7 +70,7 @@ moon publish --dry-run
 ```text
 202 Accepted
 Dry run completed successfully. No changes were made.
-package ZBZ-ai-nb/caseweave version 0.1.0
+package LF-ai-nb/caseweave version 0.1.0
 ```
 
 注意：当前 CLI 在服务端 dry-run 成功后仍以非零退出码打印 `Error: moon publish failed`。以服务端 `202 Accepted` 细节判断，包内容和用户名匹配校验已经通过；正式发布前仍建议重新运行 `moon publish --dry-run` 并确认 moon 工具链版本行为。

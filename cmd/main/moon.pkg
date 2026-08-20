@@ -1,5 +1,5 @@
 import {
-  "ZBZ-ai-nb/caseweave",
+  "LF-ai-nb/caseweave",
 }
 
 pkgtype(kind: "executable")

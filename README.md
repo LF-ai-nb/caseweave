@@ -47,7 +47,7 @@ repair-gate=pass, failures=0, additions=10, initial-missing=37, final-missing=0,
 
 ```moonbit
 import {
-  "ZBZ-ai-nb/caseweave" @caseweave,
+  "LF-ai-nb/caseweave" @caseweave,
 }
 
 fn main {
@@ -147,7 +147,7 @@ CaseWeave 负责生成和审计测试矩阵，不负责执行测试、调用浏�
 
 ## Mooncakes 发布
 
-发布前请确认 `moon.mod` 里的包名和仓库地址对应你的 Mooncakes / GitHub 账号。当前配置为 `ZBZ-ai-nb/caseweave` 和 `https://github.com/ZBZ-ai-nb/caseweave`；正式提交前需要创建并推送到这个公开仓库，或改成你实际使用的公开仓库地址。
+发布前请确认 `moon.mod` 里的包名和仓库地址对应你的 Mooncakes / GitHub 账号。当前配置为 `LF-ai-nb/caseweave` 和 `https://github.com/LF-ai-nb/caseweave`；正式提交前需要创建并推送到这个公开仓库，或改成你实际使用的公开仓库地址。
 
 ```bash
 moon check
