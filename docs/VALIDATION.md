@@ -20,6 +20,7 @@ moon test
 moon run cmd/main
 moon fmt --check
 moon publish --dry-run
+moon publish
 ```
 
 当前测试覆盖内容：
@@ -54,7 +55,7 @@ moon publish --dry-run
 测试数：27，全部通过
 ```
 
-发布前建议再次执行：
+后续版本发布前建议再次执行：
 
 ```bash
 moon check
@@ -63,6 +64,7 @@ moon test
 moon run cmd/main
 moon login
 moon publish --dry-run
+moon publish
 ```
 
 本轮 `moon publish --dry-run` 已完成包检查、压缩包解压后复查和服务端 dry-run 校验。服务端返回：
@@ -73,4 +75,12 @@ Dry run completed successfully. No changes were made.
 package LF-ai-nb/caseweave version 0.1.0
 ```
 
-注意：当前 CLI 在服务端 dry-run 成功后仍以非零退出码打印 `Error: moon publish failed`。以服务端 `202 Accepted` 细节判断，包内容和用户名匹配校验已经通过；正式发布前仍建议重新运行 `moon publish --dry-run` 并确认 moon 工具链版本行为。
+随后已执行正式发布，服务端返回：
+
+```text
+200 OK
+```
+
+Mooncakes 页面已可访问：`https://mooncakes.io/docs/LF-ai-nb/caseweave`。
+
+注意：当前 CLI 在服务端 dry-run 成功后仍以非零退出码打印 `Error: moon publish failed`；正式 `moon publish` 已正常返回 0。
