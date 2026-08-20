@@ -9,13 +9,13 @@
 //   "moonbitlang/x@0.4.6",
 // }
 
-name = "participant/caseweave"
+name = "MX-ai-nb/caseweave"
 
 version = "0.1.0"
 
 readme = "README.md"
 
-repository = "https://github.com/participant/caseweave"
+repository = "https://github.com/MX-ai-nb/caseweave"
 
 license = "MIT"
 

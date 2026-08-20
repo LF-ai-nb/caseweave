@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "participant/caseweave"
+package "MX-ai-nb/caseweave"
 
 import {
   "moonbitlang/core/debug",
@@ -14,11 +14,27 @@ pub fn cases_to_markdown(Model, Array[TestCase]) -> String
 
 pub fn generate(Model, constraints? : Array[Constraint], options? : GenerationOptions) -> Result[Suite, CaseWeaveError]
 
+pub fn parse_scenario_spec(String) -> Result[ScenarioSpec, CaseWeaveError]
+
 pub let version : String
 
 // Errors
 
 // Types and methods
+pub(all) struct CasePattern {
+  choices : Array[NamedChoice]
+} derive(Eq, @debug.Debug)
+pub fn CasePattern::matches(Self, Model, TestCase) -> Result[Bool, CaseWeaveError]
+pub fn CasePattern::to_case(Self, Model, line_no? : Int) -> Result[TestCase, CaseWeaveError]
+pub fn CasePattern::to_exclusion_constraint(Self, String) -> Result[Constraint, CaseWeaveError]
+pub fn CasePattern::to_text(Self) -> String
+pub fn CasePattern::validate(Self, Model) -> Result[Unit, CaseWeaveError]
+
+pub(all) struct CaseRisk {
+  score : Int
+  reasons : Array[String]
+} derive(Eq, @debug.Debug)
+
 pub(all) enum CaseWeaveError {
   EmptyModel
   EmptyParameterName(Int)
@@ -73,6 +89,36 @@ pub fn CoverageReport::is_complete(Self) -> Bool
 pub fn CoverageReport::missing_text(Self) -> String
 pub fn CoverageReport::summary(Self) -> String
 
+pub(all) struct GateFailure {
+  kind : GateFailureKind
+  message : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum GateFailureKind {
+  IncompleteCoverage(Int, Int)
+  TooManyMissingInteractions(Int, Int)
+  TooFewCases(Int, Int)
+  TooManyCases(Int, Int)
+  TopRiskTooLow(Int, Int)
+  TooFewPositiveRiskCases(Int, Int)
+  ScenarioWarnings(Int)
+} derive(Eq, @debug.Debug)
+
+pub(all) struct GateReport {
+  passed : Bool
+  failures : Array[GateFailure]
+  warnings : Array[SpecWarning]
+  coverage : CoverageReport
+  case_count : Int
+  top_risk_score : Int
+  positive_risk_cases : Int
+}
+pub fn GateReport::failure_text(Self) -> String
+pub fn GateReport::is_passed(Self) -> Bool
+pub fn GateReport::summary(Self) -> String
+pub fn GateReport::to_markdown(Self) -> String
+pub fn GateReport::warning_text(Self) -> String
+
 pub(all) struct GenerationOptions {
   strength : Int
   max_candidates : Int
@@ -88,6 +134,12 @@ pub(all) struct GenerationStats {
   required_interactions : Int
   selected_cases : Int
   removed_redundant_cases : Int
+} derive(Eq, @debug.Debug)
+
+pub(all) struct InteractionRisk {
+  pattern : CasePattern
+  weight : Int
+  note : String
 } derive(Eq, @debug.Debug)
 
 pub(all) struct MissingInteraction {
@@ -117,6 +169,81 @@ pub(all) struct Parameter {
 } derive(Eq, @debug.Debug)
 pub fn Parameter::new(String, Array[String]) -> Self
 
+pub(all) struct RankedCase {
+  rank : Int
+  index : Int
+  test_case : TestCase
+  score : Int
+  reasons : Array[String]
+} derive(Eq, @debug.Debug)
+
+pub(all) struct ScenarioGate {
+  require_complete_coverage : Bool
+  max_missing_interactions : Int
+  min_cases : Int
+  max_cases : Int
+  min_top_risk_score : Int
+  min_positive_risk_cases : Int
+  allow_warnings : Bool
+}
+pub fn ScenarioGate::coverage_only() -> Self
+pub fn ScenarioGate::default() -> Self
+pub fn ScenarioGate::describe(Self) -> String
+pub fn ScenarioGate::normalize(Self) -> Self
+pub fn ScenarioGate::strict() -> Self
+pub fn ScenarioGate::with_case_budget(Int, Int) -> Self
+pub fn ScenarioGate::with_risk_floor(Int, Int) -> Self
+
+pub(all) struct ScenarioRun {
+  spec_name : String
+  model : Model
+  suite : Suite
+  cases : Array[TestCase]
+  included_case_count : Int
+  coverage : CoverageReport
+  ranked_cases : Array[RankedCase]
+}
+pub fn ScenarioRun::cases_markdown(Self) -> String
+pub fn ScenarioRun::evaluate_gate(Self, ScenarioSpec, gate? : ScenarioGate) -> GateReport
+pub fn ScenarioRun::evaluate_normalized_gate(Self, ScenarioSpec, ScenarioGate) -> GateReport
+pub fn ScenarioRun::positive_risk_case_count(Self) -> Int
+pub fn ScenarioRun::risk_markdown(Self, top? : Int) -> String
+pub fn ScenarioRun::summary(Self) -> String
+pub fn ScenarioRun::top_risk_score(Self) -> Int
+
+pub(all) struct ScenarioSpec {
+  name : String
+  model : Model
+  constraints : Array[Constraint]
+  options : GenerationOptions
+  included_cases : Array[TestCase]
+  excluded_patterns : Array[CasePattern]
+  value_risks : Array[ValueRisk]
+  interaction_risks : Array[InteractionRisk]
+}
+pub fn ScenarioSpec::generate_suite(Self) -> Result[Suite, CaseWeaveError]
+pub fn ScenarioSpec::lint(Self) -> Array[SpecWarning]
+pub fn ScenarioSpec::lint_text(Self) -> String
+pub fn ScenarioSpec::parse(String) -> Result[Self, CaseWeaveError]
+pub fn ScenarioSpec::rank_cases(Self, Array[TestCase]) -> Result[Array[RankedCase], CaseWeaveError]
+pub fn ScenarioSpec::run(Self) -> Result[ScenarioRun, CaseWeaveError]
+pub fn ScenarioSpec::score_case(Self, TestCase) -> Result[CaseRisk, CaseWeaveError]
+pub fn ScenarioSpec::summary(Self) -> String
+
+pub(all) struct SpecWarning {
+  kind : SpecWarningKind
+  message : String
+} derive(Eq, @debug.Debug)
+
+pub(all) enum SpecWarningKind {
+  NoConstraints
+  NoRiskHints
+  NoIncludedCases
+  StrengthOne
+  CandidateLimitBelowCartesian(Int64, Int)
+  SingleValueParameter(String)
+} derive(Eq, @debug.Debug)
+
 pub struct Suite {
   cases : Array[TestCase]
   strength : Int
@@ -134,9 +261,16 @@ pub fn Suite::to_markdown(Self, Model) -> String
 pub(all) struct TestCase {
   values : Array[String]
 } derive(Eq, @debug.Debug)
+pub fn TestCase::assignment_text(Self, Model) -> String
 pub fn TestCase::get(Self, Int) -> String?
 pub fn TestCase::new(Array[String]) -> Self
 pub fn TestCase::value_for(Self, Model, String) -> String?
+
+pub(all) struct ValueRisk {
+  choice : NamedChoice
+  weight : Int
+  note : String
+} derive(Eq, @debug.Debug)
 
 // Type aliases
 

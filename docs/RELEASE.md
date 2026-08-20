@@ -2,7 +2,7 @@
 
 ## 发布前准备
 
-1. 把 `moon.mod` 中的 `participant/caseweave` 改成你的 Mooncakes 用户名或组织名。
+1. 确认 `moon.mod` 中的包名与 Mooncakes 登录用户名一致。当前包名为 `MX-ai-nb/caseweave`。
 2. 把 `repository` 改成公开 GitHub 仓库地址。
 3. 确认 `README.md`、`CHANGELOG.md`、`NOTICE.md` 已更新。
 4. 确认 Git 工作区干净。

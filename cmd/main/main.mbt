@@ -1,39 +1,39 @@
 ///|
+fn sample_scenario() -> String {
+  "name: Deployment risk matrix\n" +
+  "strength: 2\n" +
+  "max-candidates: 1000\n" +
+  "minimize: true\n" +
+  "param os: linux, windows, macos\n" +
+  "param browser: chrome, firefox, safari\n" +
+  "param auth: password, oidc\n" +
+  "param region: cn, eu, us\n" +
+  "constraint safari requires macos: browser == safari => os == macos\n" +
+  "exclude: os=windows, browser=safari\n" +
+  "include: os=linux, browser=chrome, auth=oidc, region=cn\n" +
+  "risk browser=safari: 4: browser-specific rendering risk\n" +
+  "risk os=macos, browser=safari: 9: Safari path must stay visible\n"
+}
+
+///|
 fn main {
-  let model = match
-    @caseweave.Model::new([
-      @caseweave.Parameter::new("os", ["linux", "windows", "macos"]),
-      @caseweave.Parameter::new("browser", ["chrome", "firefox", "safari"]),
-      @caseweave.Parameter::new("auth", ["password", "oidc"]),
-      @caseweave.Parameter::new("region", ["cn", "eu", "us"]),
-    ]) {
+  let spec = match @caseweave.ScenarioSpec::parse(sample_scenario()) {
     Ok(value) => value
     Err(_) => panic()
   }
-  let safari_rule = match
-    @caseweave.Constraint::parse(
-      "Safari is only supported on macOS", "browser == safari => os == macos",
-    ) {
+  let run = match spec.run() {
     Ok(value) => value
     Err(_) => panic()
   }
-  let suite = match
-    @caseweave.generate(
-      model,
-      constraints=[safari_rule],
-      options=@caseweave.GenerationOptions::pairwise(),
-    ) {
-    Ok(value) => value
-    Err(_) => panic()
-  }
-  let report = match
-    @caseweave.audit(model, suite.cases(), strength=2, constraints=[safari_rule]) {
-    Ok(value) => value
-    Err(_) => panic()
-  }
-  println("CaseWeave deployment matrix")
-  println(suite.summary())
-  println(report.summary())
+  let gate = run.evaluate_gate(spec, gate=@caseweave.ScenarioGate::strict())
+  println("CaseWeave scenario-driven deployment matrix")
+  println(spec.summary())
+  println(run.suite.summary())
+  println(run.coverage.summary())
+  println(gate.summary())
   println("")
-  println(suite.to_markdown(model))
+  println("Top risk-ranked cases")
+  println(run.risk_markdown(top=5))
+  println("Generated matrix")
+  println(run.cases_markdown())
 }
