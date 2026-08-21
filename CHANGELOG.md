@@ -2,6 +2,14 @@
 
 All notable changes to CaseWeave are recorded here.
 
+## 0.1.1 - 2026-08-21
+
+Documentation clarification release.
+
+- Added a dedicated differentiation note for hackathon review.
+- Clarified that CaseWeave is an original constrained combinatorial testing library, not a Mooncakes review, README/license checker, provenance checker, robot-policy package, or submission-material audit tool.
+- Reworded public docs from broad "audit" wording to test-matrix coverage verification where the distinction matters.
+
 ## 0.1.0 - 2026-08-11
 
 Initial hackathon release.
