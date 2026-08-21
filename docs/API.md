@@ -55,9 +55,9 @@ let suite = @caseweave.generate(
 
 `GenerationOptions::default()` 默认使用 pairwise，候选上限为 `100000`，并启用冗余删除。
 
-## 审计
+## 覆盖验证
 
-`audit(model, cases, strength?, constraints?, max_candidates?)` 可以检查外部测试套件是否覆盖所有可行交互。
+`audit(model, cases, strength?, constraints?, max_candidates?)` 可以检查外部测试套件是否覆盖所有可行交互。这里的 API 名称沿用测试工程中的 audit 说法，语义只限于“覆盖验证”，不读取仓库、不审查 Mooncakes 包、不判断 README、许可证或来源证明。
 
 ```moonbit
 let report = @caseweave.audit(model, suite.cases(), strength=2)
@@ -110,7 +110,7 @@ let spec = @caseweave.ScenarioSpec::parse(
 - `exclude:`：要排除的部分或完整组合，会转成约束
 - `risk selector:`：给单值或多值交互添加风险权重
 
-`spec.run()` 会生成矩阵、合并 `include` 样例、执行覆盖审计，并对用例按风险分数排序。
+`spec.run()` 会生成矩阵、合并 `include` 样例、执行覆盖验证，并对用例按风险分数排序。
 
 ```moonbit
 let run = spec.run().unwrap()
@@ -147,7 +147,7 @@ println(report.to_markdown())
 
 ## 覆盖缺口修复
 
-`plan_repair(model, cases, constraints?, options?)` 用于审计已有套件并生成补测建议。它和 `audit` 使用同一套交互集合，因此“缺什么”和“补什么”是一致的。
+`plan_repair(model, cases, constraints?, options?)` 用于验证已有套件并生成补测建议。它和 `audit` 使用同一套交互集合，因此“缺什么”和“补什么”是一致的。
 
 ```moonbit
 let seed = [

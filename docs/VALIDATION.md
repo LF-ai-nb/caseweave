@@ -84,3 +84,14 @@ package LF-ai-nb/caseweave version 0.1.0
 Mooncakes 页面已可访问：`https://mooncakes.io/docs/LF-ai-nb/caseweave`。
 
 注意：当前 CLI 在服务端 dry-run 成功后仍以非零退出码打印 `Error: moon publish failed`；正式 `moon publish` 已正常返回 0。
+
+## 补充差异化自查
+
+日期：2026-08-21
+
+已根据近期黑客松初审反馈中常见的“功能重叠、未披露扩展关系、同名或关联仓库不清”风险补充检查：
+
+- 新增 `docs/DIFFERENTIATION.md`，明确 CaseWeave 不是 Mooncakes 审查、README/许可证校验、来源证明、机器人策略或报名材料审核工具。
+- README、API、设计说明、申报书和验收说明已统一使用“覆盖验证”描述项目能力，避免与源码审查或包审查方向混淆。
+- 公开仓库未写入外部参赛项目、他人账号、他人姓名或私人联系方式。
+- 当前公开仓库和 Mooncakes 包名保持一致：`LF-ai-nb/caseweave`。
